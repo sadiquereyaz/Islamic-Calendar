@@ -9,7 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
 import com.reyaz.islamiccalendar.ui.components.IslamicCalendarTopAppBar
 import com.reyaz.islamiccalendar.ui.screen.calendar.CalendarScreen
 
@@ -17,19 +16,15 @@ import com.reyaz.islamiccalendar.ui.screen.calendar.CalendarScreen
 fun IslamicCalendarApp(
     navController: NavHostController = rememberNavController()
 ) {
-    Scaffold(
-        topBar = { IslamicCalendarTopAppBar(title = "Islamic Calendar") },
-    ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.Calendar,
-            modifier = Modifier.padding(innerPadding)
+            startDestination = Route.Calendar,
         ) {
-            composable<Routes.Calendar> {
+            composable<Route.Calendar> {
                 CalendarScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
                 )
             }
         }
-    }
+
 }

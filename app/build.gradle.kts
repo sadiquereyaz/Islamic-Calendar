@@ -63,6 +63,10 @@ dependencies {
 
     // OkHttp for network requests
     implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
 
     // Coroutines for asynchronous tasks
     implementation(libs.kotlinx.coroutines.core)

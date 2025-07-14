@@ -1,5 +1,4 @@
-package com.reyaz.islamiccalendar.ui.theme
-
+package com.example.compose
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF5B631E)

@@ -27,25 +27,47 @@ class CalendarRepositoryImpl(
 
     override fun observeCalendar(month: Int?, year: Int?): Flow<Result<CompleteCalendar>> = flow {
         try {
+            var targetMonth = month
+            var targetYear = year
+            coroutineScope {
+                if (targetMonth == null || targetYear == null) {
+                    val currentMonthDeferred = async { apiService.getCurrentIslamicMonth() }
+                    val currentYearDeferred = async { apiService.getCurrentIslamicYear() }
+
+                    val monthResponse = currentMonthDeferred.await()
+                    val yearResponse = currentYearDeferred.await()
+
+                    if (monthResponse.isSuccessful && yearResponse.isSuccessful) {
+                        targetMonth = monthResponse.body()?.data
+                            ?: throw IllegalStateException("Null current month")
+                        targetYear = yearResponse.body()?.data
+                            ?: throw IllegalStateException("Null current year")
+                    } else {
+                        throw IllegalStateException("Month/year fetch failed: month=${monthResponse.code()}, year=${yearResponse.code()}")
+                    }
+                    Log.d(TAG, "Month: $targetMonth, Year: $targetYear")
+                }
+                Log.d(TAG, "Out from coroutine")
+                getHijriCalendarWithGeorgian(targetMonth!!, targetYear!!)
+            }
+            if (targetMonth == null || targetYear == null) throw IllegalStateException("Null month or year")
             // Fetch and cache leading, current, trailing months in parallel
-            val leadingMonthYear =
-                if (month != null && year != null) adjustMonthYear(month - 1, year) else null
-            val trailingMonthYear =
-                if (month != null && year != null) adjustMonthYear(month + 1, year) else null
+            val leadingMonthYear = adjustMonthYear(targetMonth!! - 1, targetYear!!)
+            val trailingMonthYear = adjustMonthYear(targetMonth!! + 1, targetYear!!)
 
             coroutineScope {
                 val fetchResults = listOf(
                     async {
                         getHijriCalendarWithGeorgian(
-                            leadingMonthYear?.first,
-                            leadingMonthYear?.second
+                            leadingMonthYear.first,
+                            leadingMonthYear.second
                         )
                     },
-                    async { getHijriCalendarWithGeorgian(month, year) },
+
                     async {
                         getHijriCalendarWithGeorgian(
-                            trailingMonthYear?.first,
-                            trailingMonthYear?.second
+                            trailingMonthYear.first,
+                            trailingMonthYear.second
                         )
                     }
                 ).map { it.await() }
@@ -56,11 +78,11 @@ class CalendarRepositoryImpl(
                 }
             }
 
-            val localCurrentDates = calendarDao.getMonthWithDates(month!!, year!!)
+            val localCurrentDates = calendarDao.getMonthWithDates(targetMonth!!, targetYear!!)
             val localLeadingDates =
-                calendarDao.getMonthWithDates(leadingMonthYear?.first!!, leadingMonthYear.second)
+                calendarDao.getMonthWithDates(leadingMonthYear.first, leadingMonthYear.second)
             val localTrailingDates =
-                calendarDao.getMonthWithDates(trailingMonthYear?.first!!, trailingMonthYear.second)
+                calendarDao.getMonthWithDates(trailingMonthYear.first, trailingMonthYear.second)
 
             // Generate 5-row calendar grid starting Monday
             val calendarGrid = generateCalendarGrid(
@@ -72,7 +94,7 @@ class CalendarRepositoryImpl(
             emit(
                 Result.success(
                     CompleteCalendar(
-                        hijriMonth = month,
+                        hijriMonth = targetMonth!!,
                         hijriMonthName = localCurrentDates.month.monthName,
                         hijriYear = localCurrentDates.month.year,
                         dateList = calendarGrid
@@ -133,31 +155,11 @@ class CalendarRepositoryImpl(
     }
 
     override suspend fun getHijriCalendarWithGeorgian(
-        month: Int?,
-        year: Int?
+        month: Int,
+        year: Int
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            var targetMonth = month
-            var targetYear = year
-
-            if (targetMonth == null || targetYear == null) {
-                val currentMonthDeferred = async { apiService.getCurrentIslamicMonth() }
-                val currentYearDeferred = async { apiService.getCurrentIslamicYear() }
-
-                val monthResponse = currentMonthDeferred.await()
-                val yearResponse = currentYearDeferred.await()
-
-                if (monthResponse.isSuccessful && yearResponse.isSuccessful) {
-                    targetMonth = monthResponse.body()?.data
-                        ?: throw IllegalStateException("Null current month")
-                    targetYear = yearResponse.body()?.data
-                        ?: throw IllegalStateException("Null current year")
-                } else {
-                    throw IllegalStateException("Month/year fetch failed: month=${monthResponse.code()}, year=${yearResponse.code()}")
-                }
-            }
-
-            val isExists = calendarDao.isCalExists(targetMonth, targetYear)
+            val isExists = calendarDao.isCalExists(month, year)
 
             if (isExists) {
                 Log.d(TAG, "Cache Present")
@@ -165,7 +167,7 @@ class CalendarRepositoryImpl(
             }
 
             Log.d(TAG, "No Cache Present")
-            val calendarResult = apiService.getHijriCalendarWithGeorgian(targetMonth, targetYear)
+            val calendarResult = apiService.getHijriCalendarWithGeorgian(month, year)
 
             if (calendarResult.isSuccessful) {
                 val calendarData = calendarResult.body()?.data
@@ -174,8 +176,8 @@ class CalendarRepositoryImpl(
                     ?: throw IllegalStateException("Null month name")
 
                 storeMonthWithDates(
-                    month = targetMonth,
-                    year = targetYear,
+                    month = month,
+                    year = year,
                     monthName = monthName,
                     dtoList = calendarData
                 )

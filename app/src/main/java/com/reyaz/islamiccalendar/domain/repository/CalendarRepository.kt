@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface CalendarRepository {
     fun observeCalendar(month: Int?, year: Int?): Flow<Result<CompleteCalendar>>
-    suspend fun getHijriCalendarWithGeorgian(month: Int?, year: Int?): Result<Unit>
+    suspend fun getHijriCalendarWithGeorgian(month: Int, year: Int): Result<Unit>
 }

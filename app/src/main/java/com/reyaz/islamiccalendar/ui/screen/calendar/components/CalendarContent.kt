@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,12 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.reyaz.islamiccalendar.ui.screen.calendar.CalendarUiState
+import kotlinx.serialization.json.JsonNull.content
 
 @Composable
 fun CalendarContent(
@@ -43,13 +46,10 @@ fun CalendarContent(
     onCellClick: (Int) -> Unit
 ) {
     var selectedIndex by remember { mutableIntStateOf(uiState.selectedIndex) }
-    Card(
+    CustomCardContainer(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ),
     ) {
         val dayList = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
         // week days row
@@ -151,4 +151,23 @@ fun CalendarContent(
 
         }
     }
+}
+
+@Composable
+fun CustomCardContainer(
+    modifier: Modifier = Modifier,
+    shape: Shape = CardDefaults.shape,
+    content:  @Composable() (ColumnScope.() -> Unit)
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        shape = shape,
+        content = content
+    )
+
 }

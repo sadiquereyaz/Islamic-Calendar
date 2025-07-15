@@ -23,8 +23,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HolidayContent(modifier: Modifier, holidayList: List<String>) {
-    Column(
-        modifier = modifier.padding(16.dp)
+    CustomCardContainer(
+        modifier = modifier.padding(16.dp),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ){
         holidayList.forEachIndexed {index, holiday ->
             val color by rememberUpdatedState(getPaletteColorByIndex(index))

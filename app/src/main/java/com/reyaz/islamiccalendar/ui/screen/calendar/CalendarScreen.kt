@@ -1,5 +1,7 @@
 package com.reyaz.islamiccalendar.ui.screen.calendar
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +13,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.reyaz.islamiccalendar.ui.components.IslamicCalendarTopAppBar
 import com.reyaz.islamiccalendar.ui.screen.calendar.components.CalendarContent
 import com.reyaz.islamiccalendar.ui.screen.calendar.components.HolidayContent
+
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
@@ -24,23 +30,35 @@ fun CalendarScreen(
     uiState: CalendarUiState,
     onNavigateClick: (Int) -> Unit
 ) {
-    val title = when (uiState) {
-        is CalendarUiState.Success -> uiState.currCalHijriMonthYear
-        else -> "Islamic Calendar"
+    val lastTitle = rememberSaveable { mutableStateOf("Islamic Calendar") }
+    val lastSubtitle = rememberSaveable { mutableStateOf<String?>(null) }
+
+    if (uiState is CalendarUiState.Success) {
+        lastTitle.value = uiState.currCalHijriMonthYear
+        lastSubtitle.value = uiState.selectedGregorianDate
     }
 
-    val subtitle = when (uiState) {
-        is CalendarUiState.Success -> uiState.selectedGregorianDate
-        else -> null
-    }
+    val title = lastTitle.value
+    val subtitle = lastSubtitle.value
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.pointerInput(Unit) {
+            detectHorizontalDragGestures { change, dragAmount ->
+                change.consume()
+                if (dragAmount > 50) {
+                    // Swiped right, go to previous month
+                    onNavigateClick(-1)
+                } else if (dragAmount < -50) {
+                    // Swiped left, go to next month
+                    onNavigateClick(1)
+                }
+            }
+        },
         topBar = {
             IslamicCalendarTopAppBar(
                 title = title,
                 subtitle = subtitle,
-                showNavigationButtons = uiState is CalendarUiState.Success,
+                isEnabled = uiState is CalendarUiState.Success,
                 changeMonth = onNavigateClick
             )
         },
@@ -54,7 +72,9 @@ fun CalendarScreen(
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(32.dp).padding())
+                    CircularProgressIndicator(modifier = Modifier
+                        .size(32.dp)
+                        .padding())
                     Text(text = "Loading...", modifier = Modifier.padding(top = 16.dp))
                 }
             }
@@ -70,10 +90,14 @@ fun CalendarScreen(
                         uiState = uiState,
                         onCellClick = onCellClick
                     )
-                    HolidayContent(
-                        modifier = Modifier,
-                        holidayList = uiState.selectedHolidayList
-                    )
+                    uiState.selectedHolidayList?.isNotEmpty()?.let {
+                        AnimatedVisibility(it) {
+                            HolidayContent(
+                                modifier = Modifier,
+                                holidayList = uiState.selectedHolidayList
+                            )
+                        }
+                    }
                 }
             }
 
@@ -81,7 +105,8 @@ fun CalendarScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding).padding(16.dp)
+                        .padding(innerPadding)
+                        .padding(16.dp)
                 ) {
                     Text(
                         text = uiState.message,

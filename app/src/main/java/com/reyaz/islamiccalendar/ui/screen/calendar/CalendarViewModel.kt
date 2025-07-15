@@ -1,5 +1,6 @@
 package com.reyaz.islamiccalendar.ui.screen.calendar
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.reyaz.islamiccalendar.domain.repository.CalendarRepository
@@ -8,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+private const val TAG = "CALENDAR_VIEW_MODEL"
 
 class CalendarViewModel(
     private val calendarRepository: CalendarRepository
@@ -19,18 +22,25 @@ class CalendarViewModel(
         observeCalendar(month = null, year = null)
     }
 
-    fun observeCalendar(month: Int?, year: Int?) {
+    private fun observeCalendar(month: Int?, year: Int?) {
         viewModelScope.launch {
-            _uiState.value = CalendarUiState.Loading
-            calendarRepository.observeCalendar(month, year).collect { result ->
-                result.fold(
-                    onSuccess = { completeCalendar ->
-                        _uiState.value = CalendarUiState.Success(data = completeCalendar)
-                    },
-                    onFailure = { e ->
-                        _uiState.value = CalendarUiState.Error(e.message ?: "Unknown error")
-                    }
-                )
+            Log.d(TAG, "observeCalendar called with month: $month, year: $year")
+            try {
+                _uiState.value = CalendarUiState.Loading
+                calendarRepository.observeCalendar(month, year).collect { result ->
+                    result.fold(
+                        onSuccess = { completeCalendar ->
+                            _uiState.value = CalendarUiState.Success(data = completeCalendar)
+//                            Log.d(TAG, "Index of today is: ${completeCalendar.currentHijriMonthDayIndex}")
+                            Log.d(TAG, "observeCalendar month: ${completeCalendar.hijriMonth}, year: ${completeCalendar.hijriYear}")
+                        },
+                        onFailure = { e ->
+                            _uiState.value = CalendarUiState.Error(e.message ?: "Unknown error")
+                        }
+                    )
+                }
+            } catch (e: Exception){
+                Log.e(TAG, "observeCalendar error", e)
             }
         }
     }
@@ -40,6 +50,8 @@ class CalendarViewModel(
             val targetMonth = (_uiState.value as CalendarUiState.Success).data.hijriMonth + changeBy
             val targetYear = (_uiState.value as CalendarUiState.Success).data.hijriYear
 
+//            Log.d(TAG, "changeMonth year before modifying $targetYear")
+
             if (targetMonth > 12) observeCalendar(
                 month = 1,
                 year = targetYear + 1
@@ -47,7 +59,9 @@ class CalendarViewModel(
                 month = 12,
                 year = targetYear - 1
             )
-            else observeCalendar(month = targetMonth, year = null)
+            else observeCalendar(month = targetMonth, year = targetYear)
+//            Log.d(TAG, "changeMonth called with targetMonth: $targetMonth, targetYear: $targetYear")
+
         }
     }
 

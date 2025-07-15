@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -95,18 +96,19 @@ class CalendarRepositoryImpl(
                 leadingCal = localLeadingDates,
                 trailingCal = localTrailingDates
             )
-            val dayOfMonth = Clock.System.now()
-                .toLocalDateTime(TimeZone.currentSystemDefault())
-                .date
-                .dayOfMonth
+            val currentHijriMonthDayIndex: Int? = getTodaysIndex( calendarGrid)
+
+            Log.d(TAG, "Current Hijri Month Day Index: $currentHijriMonthDayIndex")
+
             emit(
                 Result.success(
                     CompleteCalendar(
                         hijriMonth = targetMonth!!,
                         hijriMonthName = localCurrentDates.month.monthName,
-                        hijriYear = localCurrentDates.month.year,
+//                        hijriYear = localCurrentDates.month.year,
+                        hijriYear = targetYear!!,
                         dateList = calendarGrid,
-                        currentHijriMonthDayIndex = calendarGrid.indexOfFirst { calDate -> calDate.isIncluded && calDate.gregorianDate == dayOfMonth }
+                        currentHijriMonthDayIndex = currentHijriMonthDayIndex
                     )
                 )
             )
@@ -116,6 +118,25 @@ class CalendarRepositoryImpl(
             emit(Result.failure(e))
         }
     }.flowOn(Dispatchers.IO)
+
+    private fun getTodaysIndex(
+        calendarGrid: List<CalDate>
+    ): Int? {
+
+        val calendar = Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .date
+        // all three are of gregorian type
+        val sysDayOfMonth = calendar.dayOfMonth
+        val sysMonthName = calendar.month.name
+        val sysYear = calendar.year
+        val currentHijriMonthDayIndex: Int? = calendarGrid.indexOfFirst { calDate ->
+//            Log.d(TAG, "${calDate.gregorianMonthName} == ${sysMonthName} ")
+            calDate.isIncluded && calDate.gregorianDate == sysDayOfMonth && calDate.gregorianMonthName.equals(sysMonthName, ignoreCase = true)
+                    && calDate.gregorianYear == sysYear
+        }.takeIf { it != -1 }
+        return currentHijriMonthDayIndex
+    }
 
     private fun adjustMonthYear(month: Int, year: Int): Pair<Int, Int> {
         return when {
@@ -154,7 +175,12 @@ class CalendarRepositoryImpl(
         result.addAll(currentToShow)
 
         // Fill trailing days
-        val trailingRequired = 35 - result.size
+        val totalSoFar = result.size
+        val remainder = totalSoFar % 7
+        val trailingRequired = if (remainder == 0) 0 else (7 - remainder)
+
+//        Log.d(TAG, "Leading: ${leadingToShow.size}, Current: ${currentToShow.size}, Result so far: $totalSoFar, TrailingRequired: $trailingRequired")
+
         val trailingToShow = trailingCal.dates.take(trailingRequired).map {
             it.toEntity(isIncluded = false)
         }

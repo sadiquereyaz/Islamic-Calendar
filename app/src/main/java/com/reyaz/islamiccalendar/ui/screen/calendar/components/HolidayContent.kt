@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,35 +26,53 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HolidayContent(modifier: Modifier, holidayList: List<String>) {
     CustomCardContainer(
-        modifier = modifier.padding(16.dp),
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-    ){
-        holidayList.forEachIndexed {index, holiday ->
-            val color by rememberUpdatedState(getPaletteColorByIndex(index))
-            Card (
-                modifier = Modifier.padding(4.dp).height(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = color.copy(alpha = 0.2f)
-                ),
-                shape = RoundedCornerShape(4.dp)
-            ){
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(4.dp)
-                            .background(color)
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp),
-                        fontWeight = FontWeight.Medium,
-                        text = holiday,
+        modifier = modifier,
+//        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    ) {
+        Text(
+            text = "Holiday",
+            fontWeight = FontWeight.Light,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        )
+        HorizontalDivider()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            holidayList.forEachIndexed { index, holiday ->
+                val color by rememberUpdatedState(getPaletteColorByIndex(index))
+                Card(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .height(28.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = color.copy(alpha = 0.2f)
+                    ),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(4.dp)
+                                .background(color)
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp),
+                            fontWeight = FontWeight.Medium,
+                            text = holiday,
 //                        color = color
-                    )
+                        )
+                    }
                 }
             }
         }

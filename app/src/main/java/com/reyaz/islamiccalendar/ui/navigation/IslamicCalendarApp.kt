@@ -27,7 +27,7 @@ fun IslamicCalendarApp(
                 CalendarScreen(
                     modifier = Modifier.fillMaxSize(),
                     uiState = uiState,
-                    onNavigateClick = {changeBy: Int->
+                    onNavigateClick = { changeBy: Int->
                         viewmodel.changeMonth(changeBy)
                     },
                     onCellClick = {

@@ -27,7 +27,7 @@ fun IslamicCalendarTopAppBar(
     title: String,
     changeMonth: (Int) -> Unit,
     subtitle: String?,
-    showNavigationButtons: Boolean
+    isEnabled: Boolean
 ) {
     TopAppBar(
         title = {
@@ -37,27 +37,27 @@ fun IslamicCalendarTopAppBar(
             }
         },
         actions = {
-            if (showNavigationButtons) {
                 MonthNavigatorButton(
+                    isEnabled = isEnabled,
                     changeMonth = { changeMonth(-1) },
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
                 )
                 MonthNavigatorButton(
+                    isEnabled = isEnabled,
                     changeMonth = { changeMonth(+1) },
                     icon = Icons.AutoMirrored.Filled.KeyboardArrowRight
                 )
-            }
         }
     )
 }
 
 @Composable
-private fun MonthNavigatorButton(changeMonth: () -> Unit, icon: ImageVector) {
+private fun MonthNavigatorButton(changeMonth: () -> Unit, icon: ImageVector, isEnabled: Boolean) {
     Icon(
         modifier = Modifier
             .padding(end = 16.dp)
             .clip(CircleShape)
-            .clickable { changeMonth() }
+            .clickable ( enabled = isEnabled, onClick = { changeMonth() } )
             .background(
                 color = MaterialTheme.colorScheme.outlineVariant,
             )

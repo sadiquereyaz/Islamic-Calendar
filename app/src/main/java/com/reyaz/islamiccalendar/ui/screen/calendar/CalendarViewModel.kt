@@ -77,4 +77,11 @@ class CalendarViewModel(
         }
     }
 
+    fun retry() {
+        viewModelScope.launch {
+            _uiState.value = CalendarUiState.Loading
+            observeCalendar(month = null, year = null)
+        }
+    }
+
 }

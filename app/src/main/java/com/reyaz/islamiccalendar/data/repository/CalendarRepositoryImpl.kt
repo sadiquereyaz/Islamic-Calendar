@@ -1,5 +1,6 @@
 package com.reyaz.islamiccalendar.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.reyaz.islamiccalendar.data.local.dao.CalendarDao
 import com.reyaz.islamiccalendar.data.local.entity.CalMonthEntity
@@ -10,6 +11,7 @@ import com.reyaz.islamiccalendar.data.remote.dto.HijriCalendarWithGeorgianDto
 import com.reyaz.islamiccalendar.domain.model.CalDate
 import com.reyaz.islamiccalendar.domain.model.CompleteCalendar
 import com.reyaz.islamiccalendar.domain.repository.CalendarRepository
+import com.reyaz.islamiccalendar.utils.NetworkUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -26,11 +28,16 @@ private const val TAG = "CALENDAR_REPOSITORY_IMPL"
 
 class CalendarRepositoryImpl(
     private val apiService: AlAdhanApiService,
-    private val calendarDao: CalendarDao
+    private val calendarDao: CalendarDao,
+    private val appContext: Context
 ) : CalendarRepository {
 
     override fun observeCalendar(month: Int?, year: Int?): Flow<Result<CompleteCalendar>> = flow {
         try {
+            if (!NetworkUtils.isInternetAvailable(appContext)) {
+                emit(Result.failure(Exception("No internet connection")))
+                return@flow
+            }
             var targetMonth = month
             var targetYear = year
             coroutineScope {

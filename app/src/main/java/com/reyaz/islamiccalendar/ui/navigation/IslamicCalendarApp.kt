@@ -32,6 +32,9 @@ fun IslamicCalendarApp(
                     },
                     onCellClick = {
                         viewmodel.onCellClick(it)
+                    },
+                    retry = {
+                        viewmodel.retry()
                     }
                 )
             }

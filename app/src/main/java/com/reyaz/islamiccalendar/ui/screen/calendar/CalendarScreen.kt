@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -28,7 +29,8 @@ fun CalendarScreen(
     modifier: Modifier = Modifier,
     onCellClick: (Int) -> Unit,
     uiState: CalendarUiState,
-    onNavigateClick: (Int) -> Unit
+    onNavigateClick: (Int) -> Unit,
+    retry: () -> Unit
 ) {
     val lastTitle = rememberSaveable { mutableStateOf("Islamic Calendar") }
     val lastSubtitle = rememberSaveable { mutableStateOf<String?>(null) }
@@ -102,17 +104,24 @@ fun CalendarScreen(
             }
 
             is CalendarUiState.Error -> {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = uiState.message,
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.error
                     )
+                    Button(
+                        onClick = { retry() }
+                    ) {
+                        Text(text = "Retry")
+                    }
                 }
             }
         }

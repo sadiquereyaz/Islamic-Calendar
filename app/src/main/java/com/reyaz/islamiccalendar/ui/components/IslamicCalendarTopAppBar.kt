@@ -3,7 +3,6 @@ package com.reyaz.islamiccalendar.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -27,24 +26,27 @@ import androidx.compose.ui.unit.sp
 fun IslamicCalendarTopAppBar(
     title: String,
     changeMonth: (Int) -> Unit,
-    subtitle: String
+    subtitle: String?,
+    showNavigationButtons: Boolean
 ) {
     TopAppBar(
         title = {
-            Column{
+            Column {
                 Text(text = title, fontWeight = FontWeight.Bold)
-                Text(text = subtitle, fontSize = 16.sp)
+                subtitle?.let{ Text (text = it, fontSize = 16.sp)}
             }
         },
         actions = {
-            MonthNavigatorButton(
-                changeMonth = { changeMonth(-1) },
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
-            )
-            MonthNavigatorButton(
-                changeMonth = { changeMonth(+1) },
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowRight
-            )
+            if (showNavigationButtons) {
+                MonthNavigatorButton(
+                    changeMonth = { changeMonth(-1) },
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft
+                )
+                MonthNavigatorButton(
+                    changeMonth = { changeMonth(+1) },
+                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+                )
+            }
         }
     )
 }

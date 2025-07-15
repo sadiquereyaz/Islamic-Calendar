@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            IslamicCalendarTheme (darkTheme = true){
+            IslamicCalendarTheme (){
                 IslamicCalendarApp()
             }
         }

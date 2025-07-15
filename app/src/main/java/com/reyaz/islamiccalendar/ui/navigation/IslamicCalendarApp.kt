@@ -1,10 +1,10 @@
 package com.reyaz.islamiccalendar.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,8 +25,11 @@ fun IslamicCalendarApp(
                 val viewmodel : CalendarViewModel = koinViewModel()
                 val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
                 CalendarScreen(
-                    modifier = Modifier,
+                    modifier = Modifier.fillMaxSize(),
                     uiState = uiState,
+                    onNavigateClick = {changeBy: Int->
+                        viewmodel.changeMonth(changeBy)
+                    },
                     onCellClick = {
                         viewmodel.onCellClick(it)
                     }

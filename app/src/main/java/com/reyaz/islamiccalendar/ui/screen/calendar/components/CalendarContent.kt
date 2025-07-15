@@ -5,13 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,10 +21,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,14 +29,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.reyaz.islamiccalendar.ui.screen.calendar.CalendarUiState
-import kotlin.random.Random
-import kotlin.random.nextInt
 
 @Composable
-fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
+fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState, onCellClick : (Int)-> Unit) {
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight(0.8f)
             .padding(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -55,12 +50,14 @@ fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
         else if (uiState.error != null)
             Text(text = uiState.error)
         else {
+            // week days row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp, horizontal = 4.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+                // week days row
                 dayList.forEach { day ->
                     Text(
                         text = day,
@@ -88,12 +85,11 @@ fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
             ) {
                 uiState.calendarDays?.dateList?.let {
-                    itemsIndexed(it) { index, day ->
-//                val includeInCurrentMonth = day in 2..32
+                    itemsIndexed(it) { index, calCell ->
                         Card(
                             modifier = Modifier.height(80.dp),
                             colors = CardDefaults.cardColors(
-                                //containerColor = if (day == today) MaterialTheme.colorScheme.primary else if (includeInCurrentMonth) Color.Unspecified else Color.Transparent,
+                                containerColor = if (index == uiState.calendarDays.currentHijriMonthDayIndex && calCell.isIncluded) MaterialTheme.colorScheme.primary else if (calCell.isIncluded) Color.Unspecified else Color.Transparent,
                             ),
                             shape = RoundedCornerShape(6.dp),
                             border = if (index == uiState.selectedIndex) BorderStroke(
@@ -101,19 +97,19 @@ fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
                                 color = MaterialTheme.colorScheme.primary
                             )
                             else BorderStroke(width = 0.dp, color = Color.Transparent),
-                            onClick = { /*isSelected = !isSelected*/ }
+                            onClick = { onCellClick(index) }
                         ) {
                             Text(
-                                text = "${day.hijriDate}",
+                                text = "${calCell.hijriDate}",
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(start = 4.dp, top = 4.dp),
 //                            .weight(1f)
-//                        color = if (includeInCurrentMonth) Color.Unspecified else MaterialTheme.colorScheme.outline
+                                color = if (calCell.isIncluded) Color.Unspecified else MaterialTheme.colorScheme.outline
                             )
 
                             Text(
-                                text = "(${day.gregorianDate})",
+                                text = "(${calCell.gregorianDate})",
                                 fontSize = 12.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
@@ -123,9 +119,10 @@ fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
                                 color = MaterialTheme.colorScheme.outline,
                                 lineHeight = 12.sp
                             )
-                            Text(
-                                text = "(${day.weekday})",
+                            /*Text(
+                                text = "(${calCell.weekday})",
                                 fontSize = 12.sp,
+//                                fontSize = 8.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .padding(start = 4.dp)
@@ -133,7 +130,7 @@ fun CalendarContent(modifier: Modifier = Modifier, uiState: CalendarUiState) {
                                 ,
                                 color = MaterialTheme.colorScheme.outline,
                                 lineHeight = 12.sp
-                            )
+                            )*/
                         }
                     }
                 }

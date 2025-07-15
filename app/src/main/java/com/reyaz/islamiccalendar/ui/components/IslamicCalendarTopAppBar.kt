@@ -2,6 +2,8 @@ package com.reyaz.islamiccalendar.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -18,15 +20,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IslamicCalendarTopAppBar(
     title: String,
-    changeMonth: (Int) -> Unit
+    changeMonth: (Int) -> Unit,
+    subtitle: String
 ) {
     TopAppBar(
-        title = { Text(text = title, fontWeight = FontWeight.Bold) },
+        title = {
+            Column{
+                Text(text = title, fontWeight = FontWeight.Bold)
+                Text(text = subtitle, fontSize = 16.sp)
+            }
+        },
         actions = {
             MonthNavigatorButton(
                 changeMonth = { changeMonth(-1) },

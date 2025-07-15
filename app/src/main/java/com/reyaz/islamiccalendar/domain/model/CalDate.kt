@@ -6,7 +6,8 @@ data class CalDate(
     val gregorianDate: Int,
     val gregorianMonthName: String,
     val gregorianYear: Int,
-    val holidays: List<String>
+    val holidays: List<String>,
+    val isIncluded: Boolean
 )
 
 

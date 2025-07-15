@@ -22,7 +22,7 @@ class CalendarViewModel(
     private fun observeCalendar() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            calendarRepository.observeCalendar(uiState.value.month, uiState.value.year).collect { result ->
+            calendarRepository.observeCalendar(uiState.value.currCalHijriMonth, uiState.value.currCalHijriYear).collect { result ->
                 if (result.isSuccess) {
                     _uiState.update {
                         it.copy(
@@ -41,5 +41,9 @@ class CalendarViewModel(
                 }
             }
         }
+    }
+
+    fun onCellClick(cellIndex: Int) {
+        _uiState.update { it.copy(selectedIndex = cellIndex) }
     }
 }

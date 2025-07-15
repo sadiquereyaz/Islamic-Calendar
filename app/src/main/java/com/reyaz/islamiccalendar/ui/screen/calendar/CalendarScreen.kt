@@ -13,14 +13,15 @@ import com.reyaz.islamiccalendar.ui.screen.calendar.components.HolidayContent
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
+    onCellClick : (Int)-> Unit,
     uiState: CalendarUiState
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            val title = if (uiState.month != null && uiState.year != null) "${uiState.month} ${uiState.year}"  else "Islamic Calendar"
             IslamicCalendarTopAppBar(
-                title = title,
+                title = uiState.currentHijriMonthYear,
+                subtitle = uiState.selectedGregorianDate ?: "empty",
                 changeMonth = {
 
                 }
@@ -32,9 +33,11 @@ fun CalendarScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+
             CalendarContent(
                 modifier = Modifier,
-                uiState = uiState
+                uiState = uiState,
+                onCellClick = onCellClick
             )
             HolidayContent()
         }

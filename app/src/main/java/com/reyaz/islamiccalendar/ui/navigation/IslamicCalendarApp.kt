@@ -26,7 +26,10 @@ fun IslamicCalendarApp(
                 val uiState by viewmodel.uiState.collectAsStateWithLifecycle()
                 CalendarScreen(
                     modifier = Modifier,
-                    uiState = uiState
+                    uiState = uiState,
+                    onCellClick = {
+                        viewmodel.onCellClick(it)
+                    }
                 )
             }
         }

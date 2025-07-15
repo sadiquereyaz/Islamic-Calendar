@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 private const val TAG = "CALENDAR_REPOSITORY_IMPL"
 
@@ -48,6 +51,8 @@ class CalendarRepositoryImpl(
                     Log.d(TAG, "Month: $targetMonth, Year: $targetYear")
                 }
                 Log.d(TAG, "Out from coroutine")
+
+                // current calendar fetching
                 getHijriCalendarWithGeorgian(targetMonth!!, targetYear!!)
             }
             if (targetMonth == null || targetYear == null) throw IllegalStateException("Null month or year")
@@ -86,18 +91,22 @@ class CalendarRepositoryImpl(
 
             // Generate 5-row calendar grid starting Monday
             val calendarGrid = generateCalendarGrid(
-                localCurrentDates,
-                localLeadingDates,
-                localTrailingDates
+                currentCal = localCurrentDates,
+                leadingCal = localLeadingDates,
+                trailingCal = localTrailingDates
             )
-
+            val dayOfMonth = Clock.System.now()
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+                .date
+                .dayOfMonth
             emit(
                 Result.success(
                     CompleteCalendar(
                         hijriMonth = targetMonth!!,
                         hijriMonthName = localCurrentDates.month.monthName,
                         hijriYear = localCurrentDates.month.year,
-                        dateList = calendarGrid
+                        dateList = calendarGrid,
+                        currentHijriMonthDayIndex = calendarGrid.indexOfFirst { calDate -> calDate.isIncluded && calDate.gregorianDate == dayOfMonth }
                     )
                 )
             )
@@ -134,20 +143,20 @@ class CalendarRepositoryImpl(
 
         // Fill leading days
         val leadingToShow = leadingCal.dates.takeLast(leadingRequired).map {
-            it.toEntity()
+            it.toEntity(isIncluded = false)
         }
         result.addAll(leadingToShow)
 
         // Fill current month
         val currentToShow = currentCal.dates.map {
-            it.toEntity()
+            it.toEntity(isIncluded = true)
         }
         result.addAll(currentToShow)
 
         // Fill trailing days
         val trailingRequired = 35 - result.size
         val trailingToShow = trailingCal.dates.take(trailingRequired).map {
-            it.toEntity()
+            it.toEntity(isIncluded = false)
         }
         result.addAll(trailingToShow)
 
@@ -176,9 +185,9 @@ class CalendarRepositoryImpl(
                     ?: throw IllegalStateException("Null month name")
 
                 storeMonthWithDates(
-                    month = month,
-                    year = year,
-                    monthName = monthName,
+                    hijriMonth = month,
+                    hijriYear = year,
+                    hijriMonthName = monthName,
                     dtoList = calendarData
                 )
                 return@withContext Result.success(Unit)
@@ -193,17 +202,17 @@ class CalendarRepositoryImpl(
     }
 
     private suspend fun storeMonthWithDates(
-        month: Int,
-        year: Int,
-        monthName: String,
+        hijriMonth: Int,
+        hijriYear: Int,
+        hijriMonthName: String,
         dtoList: List<HijriCalendarWithGeorgianDto>
     ) {
-        val monthId = "${month}_${year}"
+        val monthId = "${hijriMonth}_${hijriYear}"
         val monthEntity = CalMonthEntity(
             id = monthId,
-            month = month,
-            monthName = monthName,
-            year = year
+            month = hijriMonth,
+            monthName = hijriMonthName,
+            year = hijriYear
         )
         calendarDao.insertMonth(monthEntity)
         val dateEntities = dtoList.map { it.toEntity(monthId) }
